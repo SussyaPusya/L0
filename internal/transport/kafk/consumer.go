@@ -28,11 +28,6 @@ func NewConsumer(cfg *config.Kafka, s Service) *Consumer {
 		MaxBytes: 10e6, // 10MB
 	})
 
-	err := createTopicIfNotExists(cfg, 3, 1)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	return &Consumer{
 		Reader:  r,
 		service: s,
