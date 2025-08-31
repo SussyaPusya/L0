@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/SussyaPusya/L0/internal/config"
+	"github.com/SussyaPusya/L0/internal/repository"
 	"github.com/SussyaPusya/L0/internal/service"
 	"github.com/SussyaPusya/L0/internal/transport/kafk"
+	"github.com/SussyaPusya/L0/pkg/postgres"
 )
 
 func main() {
@@ -18,9 +21,17 @@ func main() {
 
 	}
 
-	svc := service.NewService()
+	pg, err := postgres.NewPostgres(ctx, &cfg.Postgres)
 
-	consum := kafk.NewConsumer(&cfg.Kafka, svc)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	consum.Consume(ctx)
+	repo := repository.NewRepository(pg)
+
+	svc := service.NewService(repo)
+
+	consumer := kafk.NewConsumer(&cfg.Kafka, svc)
+
+	consumer.Consume(ctx)
 }

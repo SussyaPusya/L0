@@ -2,7 +2,7 @@ FROM golang:1.25.0-alpine3.21 as builder
 
 
 
-WORKDIR /app
+WORKDIR /appl
 
 COPY . .
 
@@ -18,14 +18,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o app_service cmd/app/main.go
 FROM alpine:3.21
 
 
-WORKDIR /app
+WORKDIR /appl
 
-COPY --from=builder /app/app_service .
+COPY --from=builder /appl/app_service .
 
 # Ensure /app/migrations exists in your build context before copying, or remove this line if not needed
 # COPY --from=builder /app/migrations ./migrations
 
-
+COPY --from=builder /appl/db  ./db 
 
 
 CMD [ "./app_service" ]

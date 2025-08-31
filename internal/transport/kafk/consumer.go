@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
-	"strconv"
 
 	"github.com/SussyaPusya/L0/internal/config"
 	"github.com/SussyaPusya/L0/internal/dto"
@@ -13,7 +11,7 @@ import (
 )
 
 type Service interface {
-	CreateOrder(order *dto.Order) error
+	CreateOrder(ctx context.Context, order *dto.Order) error
 }
 type Consumer struct {
 	Reader  *kafka.Reader
@@ -24,7 +22,7 @@ func NewConsumer(cfg *config.Kafka, s Service) *Consumer {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  []string{fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)},
 		GroupID:  "consumer-group-id",
-		Topic:    cfg.Topic,
+		Topic:    "order",
 		MaxBytes: 10e6, // 10MB
 	})
 
@@ -50,7 +48,7 @@ func (c *Consumer) Consume(ctx context.Context) error {
 
 		}
 
-		if err = c.service.CreateOrder(order); err != nil {
+		if err = c.service.CreateOrder(ctx, order); err != nil {
 			// логи
 		}
 
@@ -63,30 +61,4 @@ func (c *Consumer) Consume(ctx context.Context) error {
 func (c *Consumer) Shutdown() {
 
 	c.Reader.Close()
-}
-
-func createTopicIfNotExists(cfg *config.Kafka, numPartitions, replicationFactor int) error {
-	conn, err := kafka.Dial("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	controller, err := conn.Controller()
-	if err != nil {
-		return err
-	}
-
-	controllerConn, err := kafka.Dial("tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
-	if err != nil {
-		return err
-	}
-
-	defer controllerConn.Close()
-
-	return controllerConn.CreateTopics(kafka.TopicConfig{
-		Topic:             cfg.Topic,
-		NumPartitions:     numPartitions,
-		ReplicationFactor: replicationFactor,
-	})
 }
