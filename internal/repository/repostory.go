@@ -131,6 +131,102 @@ func (r *repository) CreateOrder(ctx context.Context, order *dto.Order) error {
 	return nil
 }
 
-// func (r *repository) GetOrder(ctx context.Context, orderID string) (*dto.Order, error) {
+func (r *repository) GetOrder(ctx context.Context, orderID string) (*dto.Order, error) {
+	var order dto.Order
 
-// }
+	// Получаем основной заказ
+	err := r.pg.QueryRow(ctx, `
+        SELECT order_uid, track_number, entry, locale, internal_signature,
+            customer_id, delivery_service, shardkey, sm_id, date_created, oof_shard
+        FROM orders WHERE order_uid = $1
+    `, orderID).Scan(
+		&order.OrderUID,
+		&order.TrackNumber,
+		&order.Entry,
+		&order.Locale,
+		&order.InternalSignature,
+		&order.CustomerID,
+		&order.DeliveryService,
+		&order.ShardKey,
+		&order.SmID,
+		&order.DateCreated,
+		&order.OofShard,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get order: %w", err)
+	}
+
+	// Получаем delivery
+	err = r.pg.QueryRow(ctx, `
+        SELECT name, phone, zip, city, address, region, email
+        FROM deliveries WHERE order_uid = $1
+    `, orderID).Scan(
+		&order.Delivery.Name,
+		&order.Delivery.Phone,
+		&order.Delivery.Zip,
+		&order.Delivery.City,
+		&order.Delivery.Address,
+		&order.Delivery.Region,
+		&order.Delivery.Email,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get delivery: %w", err)
+	}
+
+	// Получаем payment
+	err = r.pg.QueryRow(ctx, `
+        SELECT transaction, request_id, currency, provider,
+            amount, payment_dt, bank, delivery_cost, goods_total, custom_fee
+        FROM payments WHERE order_uid = $1
+    `, orderID).Scan(
+		&order.Payment.Transaction,
+		&order.Payment.RequestID,
+		&order.Payment.Currency,
+		&order.Payment.Provider,
+		&order.Payment.Amount,
+		&order.Payment.PaymentDt,
+		&order.Payment.Bank,
+		&order.Payment.DeliveryCost,
+		&order.Payment.GoodsTotal,
+		&order.Payment.CustomFee,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get payment: %w", err)
+	}
+
+	// Получаем items
+	rows, err := r.pg.Query(ctx, `
+        SELECT chrt_id, track_number, price, rid, name,
+            sale, size, total_price, nm_id, brand, status
+        FROM items WHERE order_uid = $1
+    `, orderID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get items: %w", err)
+	}
+	defer rows.Close()
+
+	var items []dto.Item
+	for rows.Next() {
+		var item dto.Item
+		err := rows.Scan(
+			&item.ChrtID,
+			&item.TrackNumber,
+			&item.Price,
+			&item.Rid,
+			&item.Name,
+			&item.Sale,
+			&item.Size,
+			&item.TotalPrice,
+			&item.NmID,
+			&item.Brand,
+			&item.Status,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan item: %w", err)
+		}
+		items = append(items, item)
+	}
+	order.Items = items
+
+	return &order, nil
+}

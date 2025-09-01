@@ -9,6 +9,8 @@ import (
 
 type Repository interface {
 	CreateOrder(ctx context.Context, order *dto.Order) error
+
+	GetOrder(ctx context.Context, orderID string) (*dto.Order, error)
 }
 
 type service struct {
@@ -36,11 +38,11 @@ func (s *service) CreateOrder(ctx context.Context, order *dto.Order) error {
 	return nil
 }
 
-// func (s *service) GetOrder(ctx context.Context, orderID string) (*dto.Order, error) {
-// 	order, err := s.repo.GetOrder(ctx, orderID)
-// 	if err != nil {
-// 		// логи
-// 		return nil, err
-// 	}
-// 	return order, nil
-// }
+func (s *service) GetOrder(ctx context.Context, orderID string) (*dto.Order, error) {
+	order, err := s.repo.GetOrder(ctx, orderID)
+	if err != nil {
+		// логи
+		return nil, err
+	}
+	return order, nil
+}

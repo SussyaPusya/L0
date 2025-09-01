@@ -8,6 +8,7 @@ import (
 	"github.com/SussyaPusya/L0/internal/repository"
 	"github.com/SussyaPusya/L0/internal/service"
 	"github.com/SussyaPusya/L0/internal/transport/kafk"
+	"github.com/SussyaPusya/L0/internal/transport/rest"
 	"github.com/SussyaPusya/L0/pkg/postgres"
 )
 
@@ -31,7 +32,10 @@ func main() {
 
 	svc := service.NewService(repo)
 
-	consumer := kafk.NewConsumer(&cfg.Kafka, svc)
+	hanlrs := rest.NewHandlers(svc)
+	router := rest.NewRouter(hanlrs)
 
+	consumer := kafk.NewConsumer(&cfg.Kafka, svc)
+	go router.Run()
 	consumer.Consume(ctx)
 }

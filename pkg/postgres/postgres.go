@@ -29,7 +29,7 @@ func NewPostgres(ctx context.Context, config *config.Postgres) (*pgxpool.Pool, e
 	}
 
 	if err := conn.Ping(ctx); err != nil {
-		fmt.Println(err)
+
 		return nil, fmt.Errorf("unable to ping database: %w", err)
 	}
 
