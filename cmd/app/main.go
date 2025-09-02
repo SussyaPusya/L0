@@ -10,6 +10,7 @@ import (
 	"github.com/SussyaPusya/L0/internal/transport/kafk"
 	"github.com/SussyaPusya/L0/internal/transport/rest"
 	"github.com/SussyaPusya/L0/pkg/postgres"
+	"github.com/SussyaPusya/L0/pkg/redis"
 )
 
 func main() {
@@ -28,7 +29,13 @@ func main() {
 		fmt.Println(err)
 	}
 
-	repo := repository.NewRepository(pg)
+	cache, err := redis.NewRedis(&cfg.Redis, ctx)
+	if err != nil {
+		//логи
+		fmt.Println(err)
+	}
+
+	repo := repository.NewRepository(pg, cache)
 
 	svc := service.NewService(repo)
 

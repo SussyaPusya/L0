@@ -24,6 +24,7 @@ type Postgres struct {
 }
 
 type Redis struct {
+	TTL      int    `env:"REDIS_TTL"`
 	Host     string `env:"REDIS_HOST"`
 	Password string `env:"REDIS_PASS"`
 	Port     int    `env:"REDIS_PORT"`
