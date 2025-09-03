@@ -45,3 +45,9 @@ func (h *Handlers) GetOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(order)
 }
+
+func (h *Handlers) Main(w http.ResponseWriter, r *http.Request) {
+
+	http.ServeFile(w, r, "static/index.html")
+
+}

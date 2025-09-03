@@ -26,6 +26,7 @@ COPY --from=builder /appl/app_service .
 # COPY --from=builder /app/migrations ./migrations
 
 COPY --from=builder /appl/db  ./db 
+COPY --from=builder /appl/static  ./static
 
 
 CMD [ "./app_service" ]
