@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/SussyaPusya/L0/internal/dto"
+	"github.com/SussyaPusya/L0/pkg/logger"
 	validate "github.com/SussyaPusya/L0/pkg/validator"
+	"go.uber.org/zap"
 )
 
 type Repository interface {
@@ -14,24 +16,26 @@ type Repository interface {
 }
 
 type service struct {
-	repo Repository
+	loger *logger.Logger
+	repo  Repository
 }
 
-func NewService(repo Repository) *service {
-	return &service{repo: repo}
+func NewService(repo Repository, l *logger.Logger) *service {
+	return &service{repo: repo, loger: l}
 }
 
 func (s *service) CreateOrder(ctx context.Context, order *dto.Order) error {
 
 	err := validate.Order(order)
 	if err != nil {
-		//логи
+		s.loger.Error("validation error", zap.Error(err))
 
 		return err
 	}
 
 	if err = s.repo.CreateOrder(ctx, order); err != nil {
 		// логи
+		s.loger.Error("failed to create order", zap.Error(err))
 		return err
 	}
 
@@ -42,6 +46,7 @@ func (s *service) GetOrder(ctx context.Context, orderID string) (*dto.Order, err
 	order, err := s.repo.GetOrder(ctx, orderID)
 	if err != nil {
 		// логи
+		s.loger.Error("failed to get order", zap.Error(err))
 		return nil, err
 	}
 	return order, nil
