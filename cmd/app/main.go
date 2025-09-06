@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os/signal"
+	"syscall"
 
 	"github.com/SussyaPusya/L0/internal/config"
 	"github.com/SussyaPusya/L0/internal/repository"
@@ -50,5 +52,15 @@ func main() {
 
 	consumer := kafk.NewConsumer(&cfg.Kafka, svc)
 	go router.Run()
-	consumer.Consume(ctx)
+	go consumer.Consume(ctx)
+
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+
+	defer stop()
+
+	<-ctx.Done()
+	loger.Info("shutting down server")
+	consumer.Shutdown()
+	pg.Close()
+
 }

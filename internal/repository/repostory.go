@@ -16,6 +16,7 @@ type repository struct {
 }
 
 func NewRepository(pg *pgxpool.Pool, c *redis.RedisChache) *repository {
+
 	return &repository{pg: pg, cache: c}
 }
 
