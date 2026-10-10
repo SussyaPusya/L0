@@ -16,11 +16,11 @@ type Repository interface {
 }
 
 type service struct {
-	loger *logger.Logger
+	loger logger.Logger
 	repo  Repository
 }
 
-func NewService(repo Repository, l *logger.Logger) *service {
+func NewService(repo Repository, l logger.Logger) *service {
 	return &service{repo: repo, loger: l}
 }
 

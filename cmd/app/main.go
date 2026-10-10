@@ -20,7 +20,7 @@ import (
 func main() {
 
 	ctx := context.Background()
-	loger, err := logger.NewLogger()
+	loger, err := logger.Newlogger()
 	if err != nil {
 		panic(err)
 

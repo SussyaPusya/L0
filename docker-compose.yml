@@ -10,13 +10,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      
+
     image: app:latest
     ports:
       - "8081:8081"
     env_file:
-      - .env 
-     
+      - .env
+
     depends_on:
       kafka:
         condition: service_healthy
@@ -30,9 +30,9 @@ services:
   postgres:
     container_name: postgres
     restart: always
-    image: postgres:latest
+    image: postgres:17
     env_file:
-      - .env  
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASS}
@@ -51,7 +51,7 @@ services:
       start_period: 10s
   zookeeper:
     container_name: zookeeper
-    image: confluentinc/cp-zookeeper:7.3.0
+    image: confluentinc/cp-zookeeper:7.3.3
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     networks:
@@ -59,7 +59,7 @@ services:
 
   kafka:
     container_name: kafka
-    image: confluentinc/cp-kafka:7.3.0
+    image: confluentinc/cp-kafka:7.3.3
     depends_on:
       - zookeeper
     ports:
@@ -82,7 +82,7 @@ services:
       start_period: 30s
 
   init-kafka:
-    image: confluentinc/cp-kafka:7.3.0
+    image: confluentinc/cp-kafka:7.3.3
     depends_on:
       - kafka
     entrypoint: [ '/bin/sh', '-c' ]
@@ -93,7 +93,7 @@ services:
 
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic order --replication-factor 1 --partitions 1
-     
+
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
@@ -103,7 +103,7 @@ services:
     restart: always
     image: redis:8.2.1
     env_file:
-      - .env  
+      - .env
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
