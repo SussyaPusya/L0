@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+//mockery:generate: true
 type Repository interface {
 	CreateOrder(ctx context.Context, order *dto.Order) error
 
